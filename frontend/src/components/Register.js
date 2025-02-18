@@ -6,25 +6,37 @@ import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [role, setRole] = useState("user"); // Default role is "user"
+  const isAdmin = localStorage.getItem("role") === "admin"; // Check if the current user is an admin
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Basic validation
+    if (!username.trim() || !password.trim()) {
+      return toast.error("Username and password are required.");
+    }
+
     try {
-      await axios.post("http://localhost:5000/register", {
+      const response = await axios.post("http://localhost:5000/register", {
         username,
         password,
+        role: isAdmin ? role : undefined, // Send role only if the user is an admin
       });
 
-      // Show success toast
-      toast.success("Registration successful!");
-
-      // Redirect to login page after successful registration
-      navigate("/login");
+      if (response.status === 200) {
+        toast.success("Registration successful!");
+        navigate("/login"); // Redirect to login page
+      } else {
+        throw new Error("Unexpected server response.");
+      }
     } catch (error) {
-      // Show error toast
-      toast.error(error.response?.data?.message || "Registration failed");
+      // Handle errors gracefully
+      const errorMessage =
+        error.response?.data?.message ||
+        "An error occurred during registration.";
+      toast.error(errorMessage);
     }
   };
 
@@ -33,8 +45,9 @@ const Register = () => {
       <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Username</label>
+          <label htmlFor="username">Username</label>
           <input
+            id="username"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -42,14 +55,29 @@ const Register = () => {
           />
         </div>
         <div className="form-group">
-          <label>Password</label>
+          <label htmlFor="password">Password</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
+        {isAdmin && (
+          <div className="form-group">
+            <label htmlFor="role">Role</label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="user">User</option>
+              <option value="management">Management</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        )}
         <button type="submit">Register</button>
       </form>
     </div>

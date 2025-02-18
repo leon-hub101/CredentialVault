@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // Secret key for JWT (use a strong, unique key in production)
-const JWT_SECRET = 'your-secret-key';
+const JWT_SECRET = 'de2ff9a5defacfbcc0d1cc7b34743822c2542564a7b7873f468f25687775d635';
 
 // Generate a JWT token
 const generateToken = (userId) => {

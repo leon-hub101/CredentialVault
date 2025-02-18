@@ -36,3 +36,34 @@ button {
 button:hover {
   background-color: #218838;
 }
+
+.credentials-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #28a745;
+  color: white;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
