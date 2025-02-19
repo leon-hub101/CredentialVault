@@ -140,6 +140,44 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Endpoint to fetch all users (admin-only)
+app.get("/api/users", authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only admins can view users." });
+    }
+    const users = await User.find().populate("divisions"); // Populates division details
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Endpoint to fetch all divisions
+app.get("/api/divisions", authenticate, async (req, res) => {
+  try {
+    const divisions = await Division.find().populate("ou"); // Populates OU details
+    res.status(200).json(divisions);
+  } catch (error) {
+    console.error("Error fetching divisions:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Endpoint to fetch all OUs
+app.get("/api/ous", authenticate, async (req, res) => {
+  try {
+    const ous = await OU.find().populate("divisions"); // Populates division details
+    res.status(200).json(ous);
+  } catch (error) {
+    console.error("Error fetching OUs:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Endpoint to fetch a division's credential repository
 app.get(
   "/api/divisions/:divisionId/credentials",
@@ -300,22 +338,17 @@ app.delete(
       // Check if credential exists and belongs to the division
       const credential = await CredentialRepository.findById(credentialId);
       if (!credential || !credential.division.equals(divisionId)) {
-        return res
-          .status(404)
-          .json({
-            message: "Credential not found or does not belong to this division",
-          });
+        return res.status(404).json({
+          message: "Credential not found or does not belong to this division",
+        });
       }
 
       // Check if user has access to this division
       const user = await User.findById(req.user.userId);
       if (!user.divisions.includes(divisionId) || user.role !== "admin") {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Access denied. Permission to delete credentials required.",
-          });
+        return res.status(403).json({
+          message: "Access denied. Permission to delete credentials required.",
+        });
       }
 
       // Remove the credential from the division's list
@@ -334,3 +367,122 @@ app.delete(
     }
   }
 );
+
+// Endpoint to assign users to divisions/OU's
+app.post("/api/admin/assign-user", authenticate, async (req, res) => {
+  try {
+    // Only admins have access to this route
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only admins can assign users." });
+    }
+
+    const { userId, divisionId, ouId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (divisionId) {
+      const division = await Division.findById(divisionId);
+      if (!division) {
+        return res.status(404).json({ message: "Division not found" });
+      }
+      if (!user.divisions.includes(divisionId)) {
+        user.divisions.push(divisionId);
+      }
+    }
+
+    if (ouId) {
+      const ou = await OU.findById(ouId);
+      if (!ou) {
+        return res.status(404).json({ message: "OU not found" });
+      }
+
+      const divisionsInOU = await Division.find({ ou: ouId });
+      divisionsInOU.forEach((division) => {
+        if (!user.divisions.includes(division._id)) {
+          user.divisions.push(division._id);
+        }
+      });
+    }
+
+    await user.save();
+    res.status(200).json({ message: "User assigned successfully", user });
+  } catch (error) {
+    console.error("Error assigning user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Endpoint for unassigning users from divisions/OU's
+app.post("/api/admin/unassign-user", authenticate, async (req, res) => {
+  try {
+    // Only admins have access to this route
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only admins can unassign users." });
+    }
+
+    const { userId, divisionId, ouId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (divisionId) {
+      user.divisions = user.divisions.filter(
+        (id) => id.toString() !== divisionId
+      );
+    }
+
+    if (ouId) {
+      const divisionsInOU = await Division.find({ ou: ouId });
+      user.divisions = user.divisions.filter(
+        (id) => !divisionsInOU.some((d) => d._id.toString() === id.toString())
+      );
+    }
+
+    await user.save();
+    res.status(200).json({ message: "User unassigned successfully", user });
+  } catch (error) {
+    console.error("Error unassigning user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+//Endpoint to change user role
+app.put("/api/admin/change-role/:userId", authenticate, async (req, res) => {
+  try {
+    // Only admins have access to this route
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only admins can change roles." });
+    }
+
+    const { userId } = req.params;
+    const { newRole } = req.body;
+
+    if (!["user", "management", "admin"].includes(newRole)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = newRole;
+    await user.save();
+
+    res.status(200).json({ message: "User role updated successfully", user });
+  } catch (error) {
+    console.error("Error changing user role:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
