@@ -182,43 +182,111 @@ app.get(
 );
 
 // Endpoint for adding credentials
-app.post('/api/divisions/:divisionId/credentials', authenticate, async (req, res) => {
-  try {
-    const divisionId = req.params.divisionId;
-    const { name, username, password } = req.body;
+app.post(
+  "/api/divisions/:divisionId/credentials",
+  authenticate,
+  async (req, res) => {
+    try {
+      const divisionId = req.params.divisionId;
+      const { name, username, password } = req.body;
 
-    // Check if division exists
-    const division = await Division.findById(divisionId);
-    if (!division) {
-      return res.status(404).json({ message: 'Division not found' });
+      // Check if division exists
+      const division = await Division.findById(divisionId);
+      if (!division) {
+        return res.status(404).json({ message: "Division not found" });
+      }
+
+      // Check if user has access to this division
+      const user = await User.findById(req.user.userId);
+      if (!user.divisions.includes(divisionId)) {
+        return res
+          .status(403)
+          .json({
+            message:
+              "Access denied. No permission to add credentials to this division.",
+          });
+      }
+
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+
+      // Create new credential
+      const newCredential = new CredentialRepository({
+        name,
+        username,
+        password: hashedPassword,
+        division: divisionId,
+      });
+
+      await newCredential.save();
+
+      // Update division to include this new credential
+      division.credentials.push(newCredential._id);
+      await division.save();
+
+      res
+        .status(201)
+        .json({
+          message: "Credential added successfully",
+          credential: newCredential,
+        });
+    } catch (error) {
+      console.error("Error adding credential:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    // Check if user has access to this division
-    const user = await User.findById(req.user.userId);
-    if (!user.divisions.includes(divisionId)) {
-      return res.status(403).json({ message: 'Access denied. No permission to add credentials to this division.' });
-    }
-
-    // Hash the password
-    const hashedPassword = await hashPassword(password);
-
-    // Create new credential
-    const newCredential = new CredentialRepository({
-      name,
-      username,
-      password: hashedPassword,
-      division: divisionId
-    });
-
-    await newCredential.save();
-
-    // Update division to include this new credential
-    division.credentials.push(newCredential._id);
-    await division.save();
-
-    res.status(201).json({ message: 'Credential added successfully', credential: newCredential });
-  } catch (error) {
-    console.error('Error adding credential:', error);
-    res.status(500).json({ message: 'Internal server error' });
   }
-});
+);
+
+// Endpoint for updating credentials
+app.put(
+  "/api/divisions/:divisionId/credentials/:credentialId",
+  authenticate,
+  async (req, res) => {
+    try {
+      const divisionId = req.params.divisionId;
+      const credentialId = req.params.credentialId;
+      const { name, username, password } = req.body;
+
+      // Check if division exists
+      const division = await Division.findById(divisionId);
+      if (!division) {
+        return res.status(404).json({ message: "Division not found" });
+      }
+
+      // Check if credential exists and belongs to the division
+      const credential = await CredentialRepository.findById(credentialId);
+      if (!credential || !credential.division.equals(divisionId)) {
+        return res
+          .status(404)
+          .json({
+            message: "Credential not found or does not belong to this division",
+          });
+      }
+
+      // Check if user has access to this division
+      const user = await User.findById(req.user.userId);
+      if (!user.divisions.includes(divisionId) || user.role !== "admin") {
+        return res
+          .status(403)
+          .json({
+            message:
+              "Access denied. Permission to update credentials required.",
+          });
+      }
+
+      // Update credential
+      if (name) credential.name = name;
+      if (username) credential.username = username;
+      if (password) credential.password = await hashPassword(password); // Hash if password is updated
+
+      await credential.save();
+
+      res
+        .status(200)
+        .json({ message: "Credential updated successfully", credential });
+    } catch (error) {
+      console.error("Error updating credential:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
