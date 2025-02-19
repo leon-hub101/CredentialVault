@@ -5,7 +5,6 @@ const Division = require("./src/models/Division");
 const CredentialRepository = require("./src/models/CredentialRepository");
 const { hashPassword } = require("./src/utils/auth");
 
-// Connect to MongoDB
 const mongoURI = "mongodb://localhost:27017/credentialvault"; // For local MongoDB
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
@@ -29,7 +28,7 @@ const seedData = async () => {
   const ou3 = await OU.create({ name: "Hardware Reviews" });
   const ou4 = await OU.create({ name: "Opinion Publishing" });
 
-  // Create Divisions
+  // Create Divisions 
   const division1 = await Division.create({ name: "Finance", ou: ou1._id });
   const division2 = await Division.create({ name: "IT", ou: ou2._id });
   const division3 = await Division.create({ name: "Writing", ou: ou3._id });
@@ -46,11 +45,13 @@ const seedData = async () => {
     role: "user",
     divisions: [division1._id], // Assign to division1
   });
-  const user2 = await User.create({
+
+  // Admin user with all divisions
+  const admin1 = await User.create({
     username: "admin1",
     password: hashedPassword2,
     role: "admin",
-    divisions: [division2._id], // Assign to division2
+    divisions: [division1._id, division2._id, division3._id, division4._id], // Assign to all divisions
   });
 
   // Create Credentials
