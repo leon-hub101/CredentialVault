@@ -1,51 +1,75 @@
-.login-container,
-.register-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+/* Base styles */
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
+/* Containers for Login and Register */
+.login-container,
+.register-container {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Form groups */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 8px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   box-sizing: border-box;
+  font-size: 16px;
 }
 
+/* Button styles */
 button {
   width: 100%;
-  padding: 10px;
+  padding: 14px;
   background-color: #28a745;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
   background-color: #218838;
 }
 
+/* Credentials container */
 .credentials-container {
   max-width: 800px;
   margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+  padding: 30px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Table styles */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -54,9 +78,9 @@ table {
 
 th,
 td {
-  padding: 10px;
+  padding: 15px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
 }
 
 th {
@@ -66,4 +90,44 @@ th {
 
 tr:hover {
   background-color: #f1f1f1;
+}
+
+/* Responsive design */
+@media screen and (max-width: 600px) {
+  .login-container,
+  .register-container,
+  .credentials-container {
+    margin: 20px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+  }
+
+  .form-group input,
+  .form-group select,
+  button {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 10px;
+  }
+}
+
+/* Additional visual enhancements */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+/* Accessibility */
+button {
+  outline: none;
+}
+
+button:focus {
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.5);
 }

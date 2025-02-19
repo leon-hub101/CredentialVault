@@ -25,17 +25,23 @@ const Register = () => {
         role: isAdmin ? role : undefined, // Send role only if the user is an admin
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Registration successful!");
         navigate("/login"); // Redirect to login page
       } else {
         throw new Error("Unexpected server response.");
       }
     } catch (error) {
-      // Handle errors gracefully
-      const errorMessage =
-        error.response?.data?.message ||
-        "An error occurred during registration.";
+      let errorMessage = "An error occurred during registration.";
+      if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+        if (error.response.data.detailedError) {
+          console.error(
+            "Detailed error from server:",
+            error.response.data.detailedError
+          );
+        }
+      }
       toast.error(errorMessage);
     }
   };

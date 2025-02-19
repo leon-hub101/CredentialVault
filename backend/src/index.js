@@ -17,9 +17,11 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
 // Middleware to verify JWT and check user permissions
 const authenticate = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
+  console.log("Token:", token);
 
   if (!token) {
     return res
@@ -29,10 +31,21 @@ const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // Add the decoded user info to the request object
+    console.log("Decoded:", decoded);
+    req.user = decoded;
     next();
   } catch (error) {
-    res.status(400).json({ message: "Invalid token." });
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token has expired" });
+    } else if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid token" });
+    } else {
+      console.error("JWT Verification Error:", error);
+      return res.status(500).json({
+        message: "Internal server error",
+        detailedError: error.message,
+      });
+    }
   }
 };
 
@@ -60,7 +73,7 @@ mongoose
   });
 
 // Registration endpoint
-app.post("/register", authenticate, async (req, res) => {
+app.post("/register", async (req, res) => {
   const { username, password, role } = req.body;
 
   try {
@@ -74,13 +87,13 @@ app.post("/register", authenticate, async (req, res) => {
     const hashedPassword = await hashPassword(password);
 
     // Determine the user's role
-    const userRole = req.user.role === "admin" ? role || "user" : "user";
+    const userRole = role || "user";
 
     // Create a new user
     const user = new User({
       username,
       password: hashedPassword,
-      role: userRole, // Use the provided role (if admin) or default to 'user'
+      role: userRole,
       divisions: [],
     });
 
@@ -91,10 +104,11 @@ app.post("/register", authenticate, async (req, res) => {
     const token = generateToken(user._id);
 
     // Send the token and user details in the response
+    console.log("JWT Token generated:", token);
     res.status(201).json({ token, userId: user._id, role: user.role });
-  } catch (error) {
-    console.error("Error during registration:", error);
-    res.status(500).json({ message: "Internal server error" });
+  } catch (jwtError) {
+    console.error("Error generating JWT:", jwtError);
+    res.status(500).json({ message: "Error generating token" });
   }
 });
 

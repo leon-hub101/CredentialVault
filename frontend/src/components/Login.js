@@ -20,10 +20,11 @@ const Login = () => {
       // Show success toast
       toast.success("Login successful!");
 
-      // Save the token to localStorage (or context/state management)
+      // Save the token to localStorage 
       localStorage.setItem("token", response.data.token);
+      console.log(localStorage.getItem('token'));
 
-      // Redirect to the dashboard or home page after successful login
+      // Redirect to the dashboard after successful login
       navigate("/");
     } catch (error) {
       // Show error toast

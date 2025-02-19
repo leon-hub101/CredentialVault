@@ -53,6 +53,35 @@ const seedData = async () => {
     divisions: [division2._id], // Assign to division2
   });
 
+  // Create Credentials
+  await CredentialRepository.create({
+    name: "Finance Server Login",
+    username: "financeAdmin",
+    password: await hashPassword("finance123"), // Hash password
+    division: division1._id,
+  });
+
+  await CredentialRepository.create({
+    name: "IT SSH Access",
+    username: "itOps",
+    password: await hashPassword("itops456"), // Hash password
+    division: division2._id,
+  });
+
+  await CredentialRepository.create({
+    name: "Writing WordPress",
+    username: "writer",
+    password: await hashPassword("write789"), // Hash password
+    division: division3._id,
+  });
+
+  await CredentialRepository.create({
+    name: "Development Git",
+    username: "devOps",
+    password: await hashPassword("dev000"), // Hash password
+    division: division4._id,
+  });
+
   console.log("Sample data added");
 };
 
