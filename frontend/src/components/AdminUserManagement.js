@@ -84,7 +84,7 @@ const AdminUserManagement = () => {
   };
 
   return (
-    <div>
+    <div className="admin-user-management">
       <h2>User Management</h2>
       <table>
         <thead>

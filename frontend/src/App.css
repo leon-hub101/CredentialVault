@@ -8,10 +8,12 @@ body {
   line-height: 1.6;
 }
 
-/* Containers for Login and Register */
+/* Containers for Login, Register, and Credentials */
 .login-container,
-.register-container {
-  max-width: 500px;
+.register-container,
+.credentials-container,
+.admin-user-management {
+  max-width: 800px; 
   margin: 50px auto;
   padding: 30px;
   border-radius: 10px;
@@ -24,7 +26,8 @@ body {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.form-group label,
+.add-credential-form label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
@@ -32,7 +35,8 @@ body {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.add-credential-form input {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
@@ -43,8 +47,7 @@ body {
 
 /* Button styles */
 button {
-  width: 100%;
-  padding: 14px;
+  padding: 10px 14px; 
   background-color: #28a745;
   color: white;
   border: none;
@@ -52,66 +55,135 @@ button {
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
+  margin: 0 5px; 
 }
 
 button:hover {
   background-color: #218838;
 }
 
-/* Credentials container */
-.credentials-container {
-  max-width: 800px;
-  margin: 50px auto;
-  padding: 30px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Specific button styles */
+button.delete {
+  background-color: #dc3545; /* Red for delete */
+}
+
+button.delete:hover {
+  background-color: #c82333;
+}
+
+button.edit {
+  background-color: #007bff; /* Blue for edit */
+}
+
+button.edit:hover {
+  background-color: #0069d9;
+}
+
+/* Form styling */
+.add-credential-form {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Table styles */
-table {
+.credentials-container table,
+.admin-user-management table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  font-size: 16px;
 }
 
-th,
-td {
-  padding: 15px;
+.credentials-container th,
+.credentials-container td,
+.admin-user-management th,
+.admin-user-management td {
+  padding: 12px 15px; 
   text-align: left;
   border-bottom: 1px solid #eee;
 }
 
-th {
+.credentials-container th,
+.admin-user-management th {
   background-color: #28a745;
   color: white;
+  font-weight: bold;
 }
 
-tr:hover {
-  background-color: #f1f1f1;
+.credentials-container tr:hover,
+.admin-user-management tr:hover {
+  background-color: #f1f1f1; /* Hover effect */
+}
+
+/* Modal styling */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.modal-content .form-group {
+  margin-bottom: 15px; 
 }
 
 /* Responsive design */
 @media screen and (max-width: 600px) {
   .login-container,
   .register-container,
-  .credentials-container {
+  .credentials-container,
+  .admin-user-management {
     margin: 20px;
+    padding: 20px;
   }
 
-  .form-group label {
+  .form-group label,
+  .add-credential-form label {
     font-size: 14px;
   }
 
   .form-group input,
   .form-group select,
+  .add-credential-form input,
   button {
     font-size: 14px;
   }
 
   button {
-    padding: 10px;
+    padding: 8px 10px; 
+  }
+
+  .credentials-container table,
+  .admin-user-management table {
+    font-size: 14px;
+  }
+
+  .credentials-container th,
+  .credentials-container td,
+  .admin-user-management th,
+  .admin-user-management td {
+    padding: 10px; 
   }
 }
 
