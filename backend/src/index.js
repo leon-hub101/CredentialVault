@@ -192,6 +192,7 @@ app.get(
   authenticate,
   async (req, res) => {
     try {
+      console.log("req.user at endpoint entry:", req.user);
       const divisionId = req.params.divisionId;
       console.log("Fetching credentials for division:", divisionId);
 
@@ -204,6 +205,7 @@ app.get(
 
       // Check if the user has access to the division
       const user = await User.findById(req.user.userId);
+      console.log("Fetched user:", user);
       console.log("User divisions:", user.divisions);
       if (!user.divisions.includes(divisionId)) {
         return res.status(403).json({
