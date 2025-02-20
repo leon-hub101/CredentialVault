@@ -5,8 +5,8 @@ const bcrypt = require('bcryptjs');
 const JWT_SECRET = 'de2ff9a5defacfbcc0d1cc7b34743822c2542564a7b7873f468f25687775d635';
 
 // Generate a JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
+const generateToken = (userId, role) => {
+  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '1h' });
 };
 
 // Hash a password

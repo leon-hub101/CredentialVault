@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const User = require("./models/User");
+const OU = require("./models/OU");
 const {
   generateToken,
   hashPassword,
@@ -19,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 // Middleware to verify JWT and check user permissions
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
   console.log("Token:", token);
 
@@ -32,7 +33,12 @@ const authenticate = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     console.log("Decoded:", decoded);
-    req.user = decoded;
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    req.user = user; 
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
@@ -101,7 +107,7 @@ app.post("/register", async (req, res) => {
     await user.save();
 
     // Generate a JWT token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     // Send the token and user details in the response
     console.log("JWT Token generated:", token);
