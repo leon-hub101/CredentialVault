@@ -39,7 +39,7 @@ const authenticate = async (req, res, next) => {
       console.log("User not found for ID:", decoded.userId);
       return res.status(401).json({ message: "User not found" });
     }
-    req.user = user; 
+    req.user = user;
     console.log("Authenticated user:", user);
     next();
   } catch (error) {
@@ -192,35 +192,28 @@ app.get(
   authenticate,
   async (req, res) => {
     try {
-      console.log("req.user at endpoint entry:", req.user);
       const divisionId = req.params.divisionId;
       console.log("Fetching credentials for division:", divisionId);
 
-      // Check if the division exists
       const division = await Division.findById(divisionId);
       console.log("Division:", division);
       if (!division) {
         return res.status(404).json({ message: "Division not found" });
       }
 
-      // Check if the user has access to the division
-      const user = await User.findById(req.user.userId);
-      console.log("Fetched user:", user);
-      console.log("User divisions:", user.divisions);
-      if (!user.divisions.includes(divisionId)) {
+      console.log("req.user:", req.user); // Log the user object
+      if (!req.user.divisions.some((id) => id.equals(divisionId))) {
+        // Use .equals() for ObjectId
         return res.status(403).json({
           message:
             "Access denied. You do not have permission to view this division.",
         });
       }
 
-      // Fetch the credentials for the division
       const credentials = await CredentialRepository.find({
         division: divisionId,
       });
       console.log("Credentials:", credentials);
-
-      // Return the credentials
       res.status(200).json(credentials);
     } catch (error) {
       console.error("Error fetching credentials:", error);
@@ -238,35 +231,27 @@ app.post(
       const divisionId = req.params.divisionId;
       const { name, username, password } = req.body;
 
-      // Check if division exists
       const division = await Division.findById(divisionId);
       if (!division) {
         return res.status(404).json({ message: "Division not found" });
       }
 
-      // Check if user has access to this division
-      const user = await User.findById(req.user.userId);
-      if (!user.divisions.includes(divisionId)) {
+      console.log("req.user:", req.user);
+      if (!req.user.divisions.some((id) => id.equals(divisionId))) {
         return res.status(403).json({
           message:
             "Access denied. No permission to add credentials to this division.",
         });
       }
 
-      // Hash the password
       const hashedPassword = await hashPassword(password);
-
-      // Create new credential
       const newCredential = new CredentialRepository({
         name,
         username,
         password: hashedPassword,
         division: divisionId,
       });
-
       await newCredential.save();
-
-      // Update division to include this new credential
       division.credentials.push(newCredential._id);
       await division.save();
 
@@ -291,13 +276,11 @@ app.put(
       const credentialId = req.params.credentialId;
       const { name, username, password } = req.body;
 
-      // Check if division exists
       const division = await Division.findById(divisionId);
       if (!division) {
         return res.status(404).json({ message: "Division not found" });
       }
 
-      // Check if credential exists and belongs to the division
       const credential = await CredentialRepository.findById(credentialId);
       if (!credential || !credential.division.equals(divisionId)) {
         return res.status(404).json({
@@ -305,19 +288,19 @@ app.put(
         });
       }
 
-      // Check if user has access to this division
-      const user = await User.findById(req.user.userId);
-      if (!user.divisions.includes(divisionId) || user.role !== "admin") {
+      console.log("req.user:", req.user);
+      if (
+        !req.user.divisions.some((id) => id.equals(divisionId)) ||
+        (req.user.role !== "admin" && req.user.role !== "management")
+      ) {
         return res.status(403).json({
           message: "Access denied. Permission to update credentials required.",
         });
       }
 
-      // Update credential
       if (name) credential.name = name;
       if (username) credential.username = username;
-      if (password) credential.password = await hashPassword(password); // Hash if password is updated
-
+      if (password) credential.password = await hashPassword(password);
       await credential.save();
 
       res
@@ -339,35 +322,37 @@ app.delete(
       const divisionId = req.params.divisionId;
       const credentialId = req.params.credentialId;
 
-      // Check if division exists
       const division = await Division.findById(divisionId);
       if (!division) {
         return res.status(404).json({ message: "Division not found" });
       }
 
-      // Check if credential exists and belongs to the division
       const credential = await CredentialRepository.findById(credentialId);
       if (!credential || !credential.division.equals(divisionId)) {
-        return res.status(404).json({
-          message: "Credential not found or does not belong to this division",
-        });
+        return res
+          .status(404)
+          .json({
+            message: "Credential not found or does not belong to this division",
+          });
       }
 
-      // Check if user has access to this division
-      const user = await User.findById(req.user.userId);
-      if (!user.divisions.includes(divisionId) || user.role !== "admin") {
-        return res.status(403).json({
-          message: "Access denied. Permission to delete credentials required.",
-        });
+      console.log("req.user:", req.user);
+      if (
+        !req.user.divisions.some((id) => id.equals(divisionId)) ||
+        (req.user.role !== "admin" && req.user.role !== "management")
+      ) {
+        return res
+          .status(403)
+          .json({
+            message:
+              "Access denied. Permission to delete credentials required.",
+          });
       }
 
-      // Remove the credential from the division's list
       division.credentials = division.credentials.filter(
         (id) => !id.equals(credentialId)
       );
       await division.save();
-
-      // Delete the credential
       await CredentialRepository.findByIdAndDelete(credentialId);
 
       res.status(200).json({ message: "Credential deleted successfully" });
