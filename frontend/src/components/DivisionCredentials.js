@@ -11,18 +11,16 @@ const DivisionCredentials = () => {
     username: "",
     password: "",
   });
-  const [editingCredential, setEditingCredential] = useState(null);
+  const [editCredential, setEditCredential] = useState(null); // State for editing credential
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
 
-  // useCallback to memoize fetchCredentials
   const fetchCredentials = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
         `http://localhost:5000/api/divisions/${divisionId}/credentials`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       setCredentials(response.data);
@@ -31,21 +29,23 @@ const DivisionCredentials = () => {
         error.response?.data?.message || "Failed to fetch credentials"
       );
     }
-  }, [divisionId]); // Depend on divisionId
+  }, [divisionId]);
 
-  // UseEffect with fetchCredentials as a dependency
   useEffect(() => {
     console.log("Division ID from frontend:", divisionId);
     fetchCredentials();
-  }, [divisionId, fetchCredentials]); // Only re-run if divisionId or fetchCredentials changes
+  }, [divisionId, fetchCredentials]);
 
-  // Handle input changes for new credential form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewCredential({ ...newCredential, [name]: value });
   };
 
-  // Function to add new credential
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditCredential({ ...editCredential, [name]: value });
+  };
+
   const handleAddCredential = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -53,22 +53,36 @@ const DivisionCredentials = () => {
       await axios.post(
         `http://localhost:5000/api/divisions/${divisionId}/credentials`,
         newCredential,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Credential added successfully");
-      setNewCredential({ name: "", username: "", password: "" }); // Reset form
-      // Refresh the list of credentials
+      setNewCredential({ name: "", username: "", password: "" });
       await fetchCredentials();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add credential");
     }
   };
 
-  // Function to delete a credential
+  const handleEditCredential = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    try {
+      await axios.put(
+        `http://localhost:5000/api/divisions/${divisionId}/credentials/${editCredential._id}`,
+        editCredential,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Credential updated successfully");
+      setIsModalOpen(false);
+      setEditCredential(null);
+      await fetchCredentials();
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to update credential"
+      );
+    }
+  };
+
   const handleDeleteCredential = async (credentialId) => {
     const token = localStorage.getItem("token");
     const confirmDelete = window.confirm(
@@ -78,14 +92,9 @@ const DivisionCredentials = () => {
       try {
         await axios.delete(
           `http://localhost:5000/api/divisions/${divisionId}/credentials/${credentialId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success("Credential deleted successfully");
-        // Refresh the list of credentials
         await fetchCredentials();
       } catch (error) {
         toast.error(
@@ -95,43 +104,9 @@ const DivisionCredentials = () => {
     }
   };
 
-  // Function to start editing a credential
-  const handleEditCredential = (credential) => {
-    setEditingCredential({ ...credential, password: "" }); // Don't show the current password for security
-  };
-
-  // Function to update a credential
-  const handleUpdateCredential = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    try {
-      await axios.put(
-        `http://localhost:5000/api/divisions/${divisionId}/credentials/${editingCredential._id}`,
-        {
-          name: editingCredential.name,
-          username: editingCredential.username,
-          password: editingCredential.password,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      toast.success("Credential updated successfully");
-      setEditingCredential(null); // Close the editing form
-      await fetchCredentials(); // Refresh credentials list
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to update credential"
-      );
-    }
-  };
-
-  // Handle changes for the editing form
-  const handleEditingInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditingCredential({ ...editingCredential, [name]: value });
+  const openEditModal = (credential) => {
+    setEditCredential(credential);
+    setIsModalOpen(true);
   };
 
   return (
@@ -152,12 +127,16 @@ const DivisionCredentials = () => {
               <tr key={credential._id}>
                 <td>{credential.name}</td>
                 <td>{credential.username}</td>
-                <td>••••••••</td> {/* Hide password for security */}
+                <td>••••••••</td>
                 <td>
-                  <button onClick={() => handleEditCredential(credential)}>
+                  <button
+                    className="edit"
+                    onClick={() => openEditModal(credential)}
+                  >
                     Edit
                   </button>
                   <button
+                    className="delete"
                     onClick={() => handleDeleteCredential(credential._id)}
                   >
                     Delete
@@ -171,7 +150,6 @@ const DivisionCredentials = () => {
         <p>No credentials found.</p>
       )}
 
-      {/* Form for adding new credentials */}
       <form onSubmit={handleAddCredential} className="add-credential-form">
         <h3>Add New Credential</h3>
         <div>
@@ -210,51 +188,51 @@ const DivisionCredentials = () => {
         <button type="submit">Add Credential</button>
       </form>
 
-      {/* Edit Credential Form */}
-      {editingCredential && (
-        <form
-          onSubmit={handleUpdateCredential}
-          className="edit-credential-form"
-        >
-          <h3>Edit Credential</h3>
-          <div>
-            <label htmlFor="editName">Name:</label>
-            <input
-              type="text"
-              id="editName"
-              name="name"
-              value={editingCredential.name}
-              onChange={handleEditingInputChange}
-              required
-            />
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Edit Credential</h3>
+            <form onSubmit={handleEditCredential}>
+              <div>
+                <label htmlFor="edit-name">Name:</label>
+                <input
+                  type="text"
+                  id="edit-name"
+                  name="name"
+                  value={editCredential?.name || ""}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-username">Username:</label>
+                <input
+                  type="text"
+                  id="edit-username"
+                  name="username"
+                  value={editCredential?.username || ""}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-password">Password:</label>
+                <input
+                  type="password"
+                  id="edit-password"
+                  name="password"
+                  value={editCredential?.password || ""}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <button type="submit">Update Credential</button>
+              <button type="button" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </button>
+            </form>
           </div>
-          <div>
-            <label htmlFor="editUsername">Username:</label>
-            <input
-              type="text"
-              id="editUsername"
-              name="username"
-              value={editingCredential.username}
-              onChange={handleEditingInputChange}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="editPassword">Password:</label>
-            <input
-              type="password"
-              id="editPassword"
-              name="password"
-              value={editingCredential.password}
-              onChange={handleEditingInputChange}
-              required
-            />
-          </div>
-          <button type="submit">Update Credential</button>
-          <button type="button" onClick={() => setEditingCredential(null)}>
-            Cancel
-          </button>
-        </form>
+        </div>
       )}
     </div>
   );
