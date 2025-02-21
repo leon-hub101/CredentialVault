@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Login = ({ setUser }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -17,17 +17,18 @@ const Login = () => {
         password,
       });
 
-      // Show success toast
       toast.success("Login successful!");
-
-      // Save the token to localStorage 
       localStorage.setItem("token", response.data.token);
-      console.log(localStorage.getItem('token'));
+      localStorage.setItem("role", response.data.role); 
 
-      // Redirect to the dashboard after successful login
-      navigate("/");
+      // Fetch user details after login using /api/me
+      const userResponse = await axios.get("http://localhost:5000/api/me", {
+        headers: { Authorization: `Bearer ${response.data.token}` },
+      });
+      setUser(userResponse.data); 
+
+      navigate("/dashboard");
     } catch (error) {
-      // Show error toast
       toast.error(error.response?.data?.message || "Login failed");
     }
   };

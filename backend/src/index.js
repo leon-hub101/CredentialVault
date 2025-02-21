@@ -139,12 +139,10 @@ app.get(
 
       console.log("req.user:", req.user);
       if (!req.user.divisions.some((id) => id.equals(divisionId))) {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Access denied. You do not have permission to view this division.",
-          });
+        return res.status(403).json({
+          message:
+            "Access denied. You do not have permission to view this division.",
+        });
       }
 
       const credentials = await CredentialRepository.find({
@@ -175,12 +173,10 @@ app.post(
 
       console.log("req.user:", req.user);
       if (!req.user.divisions.some((id) => id.equals(divisionId))) {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Access denied. No permission to add credentials to this division.",
-          });
+        return res.status(403).json({
+          message:
+            "Access denied. No permission to add credentials to this division.",
+        });
       }
 
       const hashedPassword = await hashPassword(password);
@@ -194,12 +190,10 @@ app.post(
       division.credentials.push(newCredential._id);
       await division.save();
 
-      res
-        .status(201)
-        .json({
-          message: "Credential added successfully",
-          credential: newCredential,
-        });
+      res.status(201).json({
+        message: "Credential added successfully",
+        credential: newCredential,
+      });
     } catch (error) {
       console.error("Error adding credential:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -224,11 +218,9 @@ app.put(
 
       const credential = await CredentialRepository.findById(credentialId);
       if (!credential || !credential.division.equals(divisionId)) {
-        return res
-          .status(404)
-          .json({
-            message: "Credential not found or does not belong to this division",
-          });
+        return res.status(404).json({
+          message: "Credential not found or does not belong to this division",
+        });
       }
 
       console.log("req.user:", req.user);
@@ -236,12 +228,9 @@ app.put(
         !req.user.divisions.some((id) => id.equals(divisionId)) ||
         (req.user.role !== "admin" && req.user.role !== "management")
       ) {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Access denied. Permission to update credentials required.",
-          });
+        return res.status(403).json({
+          message: "Access denied. Permission to update credentials required.",
+        });
       }
 
       if (name) credential.name = name;
@@ -275,11 +264,9 @@ app.delete(
 
       const credential = await CredentialRepository.findById(credentialId);
       if (!credential || !credential.division.equals(divisionId)) {
-        return res
-          .status(404)
-          .json({
-            message: "Credential not found or does not belong to this division",
-          });
+        return res.status(404).json({
+          message: "Credential not found or does not belong to this division",
+        });
       }
 
       console.log("req.user:", req.user);
@@ -287,12 +274,9 @@ app.delete(
         !req.user.divisions.some((id) => id.equals(divisionId)) ||
         (req.user.role !== "admin" && req.user.role !== "management")
       ) {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Access denied. Permission to delete credentials required.",
-          });
+        return res.status(403).json({
+          message: "Access denied. Permission to delete credentials required.",
+        });
       }
 
       division.credentials = division.credentials.filter(
@@ -340,6 +324,7 @@ app.get("/api/divisions", authenticate, async (req, res) => {
 app.get("/api/ous", authenticate, async (req, res) => {
   try {
     const ous = await OU.find().populate("divisions");
+    console.log("OUs sent to frontend:", ous);
     res.status(200).json(ous);
   } catch (error) {
     console.error("Error fetching OUs:", error);
@@ -410,19 +395,29 @@ app.post("/api/admin/unassign-user", authenticate, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    let changed = false;
     if (divisionId) {
+      const initialLength = user.divisions.length;
       user.divisions = user.divisions.filter((id) => !id.equals(divisionId));
+      if (user.divisions.length < initialLength) changed = true;
     }
 
     if (ouId) {
       const divisionsInOU = await Division.find({ ou: ouId });
+      const initialLength = user.divisions.length;
       user.divisions = user.divisions.filter(
         (id) => !divisionsInOU.some((d) => d._id.equals(id))
       );
+      if (user.divisions.length < initialLength) changed = true;
     }
 
-    await user.save();
-    res.status(200).json({ message: "User unassigned successfully", user });
+    if (changed) {
+      await user.save();
+      console.log("User after unassignment:", user);
+      res.status(200).json({ message: "User unassigned successfully", user });
+    } else {
+      res.status(200).json({ message: "No changes made", user });
+    }
   } catch (error) {
     console.error("Error unassigning user:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -456,6 +451,17 @@ app.put("/api/admin/change-role/:userId", authenticate, async (req, res) => {
     res.status(200).json({ message: "User role updated successfully", user });
   } catch (error) {
     console.error("Error changing user role:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Fetch current user's details
+app.get("/api/me", authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("divisions");
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });

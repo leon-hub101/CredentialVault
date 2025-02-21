@@ -124,7 +124,7 @@ All endpoints (except `/register` and `/login`) require an `Authorization: Beare
 1. Start the backend:
    ```bash
    cd backend
-   node index.js
+   npm start run dev
    ```
 2. In a new terminal, start the frontend:
    ```bash
