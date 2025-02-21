@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user"); // Default role is "user"
-  const isAdmin = localStorage.getItem("role") === "admin"; // Check if the current user is an admin
-  const navigate = useNavigate(); // Initialize the navigate function
+  const [role, setRole] = useState("user"); 
+  const isAdmin = localStorage.getItem("role") === "admin"; 
+  const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,12 +22,12 @@ const Register = () => {
       const response = await axios.post("http://localhost:5000/register", {
         username,
         password,
-        role: isAdmin ? role : undefined, // Send role only if the user is an admin
+        role: isAdmin ? role : undefined, 
       });
 
       if (response.status === 201) {
         toast.success("Registration successful!");
-        navigate("/login"); // Redirect to login page
+        navigate("/login"); 
       } else {
         throw new Error("Unexpected server response.");
       }
