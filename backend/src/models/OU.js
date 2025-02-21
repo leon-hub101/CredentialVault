@@ -9,7 +9,7 @@ const ouSchema = new mongoose.Schema({
   divisions: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Division", // Reference to the Division model
+      ref: "Division", 
     },
   ],
 });

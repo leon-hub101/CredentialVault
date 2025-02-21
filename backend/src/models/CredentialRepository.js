@@ -15,7 +15,7 @@ const credentialSchema = new mongoose.Schema({
   },
   division: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Division', // Reference to the Division model
+    ref: 'Division', 
   },
 });
 

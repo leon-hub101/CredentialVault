@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// Division credentials management component
 const DivisionCredentials = () => {
   const { divisionId } = useParams();
   const [credentials, setCredentials] = useState([]);
@@ -11,9 +12,10 @@ const DivisionCredentials = () => {
     username: "",
     password: "",
   });
-  const [editCredential, setEditCredential] = useState(null); // State for editing credential
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
+  const [editCredential, setEditCredential] = useState(null); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
 
+  // Fetch credentials for the division
   const fetchCredentials = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -31,21 +33,25 @@ const DivisionCredentials = () => {
     }
   }, [divisionId]);
 
+  // Load credentials on division ID change
   useEffect(() => {
     console.log("Division ID from frontend:", divisionId);
     fetchCredentials();
   }, [divisionId, fetchCredentials]);
 
+  // Handle input changes for new credential form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewCredential({ ...newCredential, [name]: value });
   };
 
+  // Handle input changes for edit credential form
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
     setEditCredential({ ...editCredential, [name]: value });
   };
 
+  // Add a new credential to the division
   const handleAddCredential = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -63,6 +69,7 @@ const DivisionCredentials = () => {
     }
   };
 
+  // Update an existing credential
   const handleEditCredential = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -83,6 +90,7 @@ const DivisionCredentials = () => {
     }
   };
 
+  // Delete a credential from the division
   const handleDeleteCredential = async (credentialId) => {
     const token = localStorage.getItem("token");
     const confirmDelete = window.confirm(
@@ -104,6 +112,7 @@ const DivisionCredentials = () => {
     }
   };
 
+  // Open the edit modal with selected credential data
   const openEditModal = (credential) => {
     setEditCredential(credential);
     setIsModalOpen(true);

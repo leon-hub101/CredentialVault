@@ -12,13 +12,13 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["user", "management", "admin"], // Possible roles
-    default: "user", // Default role is 'user'
+    enum: ["user", "management", "admin"], 
+    default: "user", 
   },
   divisions: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Division", // Reference to the Division model
+      ref: "Division", 
     },
   ],
 });

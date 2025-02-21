@@ -11,9 +11,11 @@ import AdminUserManagement from "./components/AdminUserManagement";
 import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar";
 
+// Root component for the app
 function App() {
   const [user, setUser] = useState(null);
 
+  // Display toast notifications
   const showToast = (message, type = "success") => {
     const options = {
       toastId: `${type}-${Date.now()}`,
@@ -31,6 +33,7 @@ function App() {
     }
   };
 
+  // Fetch user data on mount
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -58,6 +61,7 @@ function App() {
     fetchUser();
   }, []);
 
+  // Log user state changes
   useEffect(() => {
     console.log("User state updated in App.js:", user);
   }, [user]);

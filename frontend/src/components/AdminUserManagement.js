@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// Admin user management component
 const AdminUserManagement = ({ user, setUser }) => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [divisions, setDivisions] = useState([]);
   const [ous, setOUs] = useState([]);
 
+  // Fetch users, divisions, and OUs on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -35,6 +37,7 @@ const AdminUserManagement = ({ user, setUser }) => {
     fetchData();
   }, []);
 
+  // Update a user's role
   const handleRoleChange = async (userId, newRole) => {
     const token = localStorage.getItem("token");
     try {
@@ -58,6 +61,7 @@ const AdminUserManagement = ({ user, setUser }) => {
     }
   };
 
+  // Assign a division or OU to a user
   const handleAssign = async (userId, divisionId, ouId) => {
     const token = localStorage.getItem("token");
     try {
@@ -81,13 +85,14 @@ const AdminUserManagement = ({ user, setUser }) => {
         setUser(updatedUser.data);
       }
       if (selectedUser && selectedUser._id === userId) {
-        setSelectedUser(response.data.user); // Update selectedUser state
+        setSelectedUser(response.data.user);
       }
     } catch (error) {
       toast.error("Failed to assign user: " + error.message);
     }
   };
 
+  // Unassign a division or OU from a user
   const handleUnassign = async (userId, divisionId, ouId) => {
     const token = localStorage.getItem("token");
     try {
@@ -111,13 +116,14 @@ const AdminUserManagement = ({ user, setUser }) => {
         setUser(updatedUser.data);
       }
       if (selectedUser && selectedUser._id === userId) {
-        setSelectedUser(response.data.user); // Update selectedUser state
+        setSelectedUser(response.data.user); 
       }
     } catch (error) {
       toast.error("Failed to unassign user: " + error.message);
     }
   };
 
+  // Check if all divisions in an OU are assigned to a user
   const isOUFullyAssigned = (ou, userDivisions) => {
     const ouDivisionIds = ou.divisions.map((div) =>
       typeof div === "object" ? div._id.toString() : div.toString()

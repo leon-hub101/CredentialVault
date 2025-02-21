@@ -8,12 +8,12 @@ const divisionSchema = new mongoose.Schema({
   },
   ou: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "OU", // Reference to the OU model
+    ref: "OU", 
   },
   credentials: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CredentialRepository", // Reference to the CredentialRepository model
+      ref: "CredentialRepository", 
     },
   ],
 });
