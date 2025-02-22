@@ -25,36 +25,43 @@ This is a monorepo containing:
 ## Setup Instructions
 
 1. **Clone the Repository**
+
    ```bash
    git clone https://github.com/leon-hub101/CredentialVault.git
    cd CredentialVault
 Install Backend Dependencies
+
 bash
 Wrap
 Copy
 cd backend
 npm install
 Configure Backend
+
 Ensure MongoDB is running locally (mongodb://localhost:27017).
 Update backend/src/index.js (or server.js) with your MongoDB connection if different.
 Seed Initial Data
+
 bash
 Wrap
 Copy
 node seed.js
 Seeds initial users (e.g., admin1:adminpass), divisions, and OUs.
 Start Backend
+
 bash
 Wrap
 Copy
 node server.js
 Install Frontend Dependencies
+
 bash
 Wrap
 Copy
 cd ../frontend
 npm install
 Start Frontend
+
 bash
 Wrap
 Copy
@@ -70,22 +77,27 @@ Admin: admin1 / adminpass
 User: user1 / password123
 Contributing
 Fork the repository.
+
 Create a feature branch:
+
 bash
 Wrap
 Copy
 git checkout -b feature/your-feature
 Commit changes:
+
 bash
 Wrap
 Copy
 git commit -m "Add your feature"
 Push to your fork:
+
 bash
 Wrap
 Copy
 git push origin feature/your-feature
 Open a pull request on GitHub.
+
 License
 This project is unlicensed (public domain). Use it freely!
 
